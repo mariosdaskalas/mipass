@@ -1,4 +1,4 @@
-This is a Python GUI program dedicated for creating and storing online accounts and passwords in a separate .txt file.
+This is a Python GUI program dedicated for creating and storing online accounts and passwords in a separate .json file.
 
 ```shell
 git clone https://github.com/mariosdaskalas/mipass

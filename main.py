@@ -1,9 +1,29 @@
 from tkinter import *
 from tkinter import messagebox
 import random
+import json
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
+def search():
+    print(f"Search executed.")
+    # Fetch values
+    website_get = website_input.get()
+    try:
+        f = open("data.json", "r")
+        data = json.load(f)
+    except FileNotFoundError:
+        messagebox.showinfo(title=f"Not Found", message=f"No Data File Found. Creating it now...")
+        f = open("data.json", "w")
+    else:
+        if website_get in data:
+            mail = (data[f"{website_get}"][f"email"])
+            password = (data[f"{website_get}"][f"password"])
+            messagebox.showinfo(title=f"{website_get}", message=f"Email: {mail}\n Password: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No details for {website_get} found.")
+
+
 def generate_password():
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
                'v',
@@ -44,6 +64,13 @@ def save():
     website_get = website_input.get()
     username_get = username_input.get()
     password_get = password_input.get()
+    new_data = {
+        website_get: {
+            "email": username_get,
+            "password": password_get,
+        }
+    }
+
     all_get = f"{website_get} | {username_get} | {password_get} \n"
     print(all_get)
 
@@ -53,19 +80,30 @@ def save():
         is_ok = messagebox.askokcancel(title=website_get,
                                        message=f"These are the details entered: \nEmail: {username_get}\n Password: {password_get}\n It is ok to save?")
         if is_ok:
-            f = open("data.txt", "a")
-            f.write(f"{all_get}")
-            f.close()
-
-    website_input.delete(0, END)
-    username_input.delete(0, END)
-    password_input.delete(0, END)
+            try:
+                f = open("data.json", "r")
+                # Reading old data
+                data = json.load(f)
+            except (FileNotFoundError, json.decoder.JSONDecodeError):
+                f = open("data.json", "w")
+                json.dump(new_data, f, indent=4)
+            else:
+                # Updating old data with new data
+                data.update(new_data)
+                f = open("data.json", "w")
+                # Saving updated data
+                json.dump(data, f, indent=4)
+            finally:
+                website_input.delete(0, END)
+                username_input.delete(0, END)
+                password_input.delete(0, END)
 
 
 # ---------------------------- UI SETUP ------------------------------- #
 root = Tk()
 root.title("Password Manager")
 root.config(padx=50, pady=50)
+root.iconphoto(False,PhotoImage(file="logo.png"))
 
 # Canvas
 canvas = Canvas(width=200, height=200, highlightthickness=0)
@@ -82,15 +120,17 @@ password_label = Label(text="Password:")
 password_label.grid(column=0, row=3)
 
 # Entry
-website_input = Entry(root, width=35)
-website_input.grid(column=1, row=1, columnspan=2)
+website_input = Entry(root, width=23)
+website_input.grid(column=1, row=1)
 website_input.focus()
-username_input = Entry(root, width=35)
+username_input = Entry(root, width=37)
 username_input.grid(column=1, row=2, columnspan=2)
-password_input = Entry(root, width=21)
+password_input = Entry(root, width=23)
 password_input.grid(column=1, row=3)
 
 # Buttons
+btn_search = Button(text="Search", width=10, command=search)
+btn_search.grid(column=2, row=1)
 btn_password = Button(text="Generate", width=10, command=generate_password)
 btn_password.grid(column=2, row=3)
 btn_add = Button(text="Add", width=36, command=save)
